@@ -3,6 +3,7 @@ import { Asset } from "@meshsdk/common";
 /** An output as the Iagon Insight API serves it on its Blockfrost compatible surface. */
 export type IagonInsightUTxO = {
   address: string;
+  collateral?: boolean;
   tx_hash: string;
   output_index: number;
   amount: Asset[];
