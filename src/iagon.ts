@@ -179,7 +179,7 @@ export class IagonInsightProvider
       return {
         confirmations: data.confirmations,
         epoch: data.epoch,
-        epochSlot: data.epoch_slot.toString(),
+        epochSlot: data.epoch_slot?.toString() ?? "",
         fees: data.fees,
         hash: data.hash,
         nextBlock: data.next_block ?? "",
@@ -187,7 +187,7 @@ export class IagonInsightProvider
         output: data.output ?? "0",
         previousBlock: data.previous_block,
         size: data.size,
-        slot: data.slot.toString(),
+        slot: data.slot?.toString() ?? "",
         slotLeader: data.slot_leader ?? "",
         time: data.time,
         txCount: data.tx_count,
@@ -279,7 +279,7 @@ export class IagonInsightProvider
         index: tx.index,
         invalidAfter: tx.invalid_hereafter ?? "",
         invalidBefore: tx.invalid_before ?? "",
-        slot: tx.slot.toString(),
+        slot: tx.slot?.toString() ?? "",
         size: tx.size,
         inputs: utxos.inputs,
         outputs: utxos.outputs,
@@ -292,8 +292,11 @@ export class IagonInsightProvider
   async fetchUTxOs(hash: string, index?: number): Promise<UTxO[]> {
     try {
       const data = await this.request({ url: this.bf(`txs/${hash}/utxos`) });
+      // a collateral return is listed with the outputs, but only exists when
+      // the scripts failed, and then it is the only output
       const outputs = (data.outputs as IagonInsightUTxO[]).filter(
-        (o) => index === undefined || o.output_index === index,
+        (o) =>
+          !o.collateral && (index === undefined || o.output_index === index),
       );
       return await Promise.all(outputs.map((o) => this.toUTxO(o, hash)));
     } catch (error) {
