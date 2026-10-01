@@ -115,4 +115,35 @@ describe("IagonInsightProvider fetcher", () => {
     expect(block.slot).toBe("34");
     expect(block.nextBlock).toBe("");
   });
+
+  it("takes an epoch boundary block without slot, height or epoch", async () => {
+    const provider = makeProvider(async () => ({
+      data: {
+        hash: "5f".repeat(32),
+        height: null,
+        slot: null,
+        epoch: null,
+        epoch_slot: null,
+        slot_leader: "Genesis slot leader",
+        tx_count: 0,
+        confirmations: 1,
+      },
+    }));
+
+    const block = await provider.fetchBlockInfo("5f".repeat(32));
+    expect(block.slot).toBe("");
+    expect(block.epochSlot).toBe("");
+  });
+
+  it("does not hand out the collateral return of a valid transaction", async () => {
+    const provider = makeProvider(async () => ({
+      data: {
+        inputs: [],
+        outputs: [utxo(0), utxo(1), { ...utxo(2), collateral: true }],
+      },
+    }));
+
+    const utxos = await provider.fetchUTxOs("aa".repeat(32));
+    expect(utxos.map((u) => u.input.outputIndex)).toEqual([0, 1]);
+  });
 });
